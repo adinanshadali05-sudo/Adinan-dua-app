@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="om">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Adinan Dua App</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap">
+<style>
+:root{
+  --bg:#E6F0F7; --card:#FFFFFF; --ink:#16324A; --mute:#5B7389; --accent:#C9861A; --done:#2E7D5B; --line:#C9DAE6;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#10222E;--card:#183243;--ink:#E4EEF5;--mute:#9DB4C4;--accent:#F0B44C;--done:#5BC596;--line:#2A4A5E}
+}
+:root[data-theme="dark"]{--bg:#10222E;--card:#183243;--ink:#E4EEF5;--mute:#9DB4C4;--accent:#F0B44C;--done:#5BC596;--line:#2A4A5E}
+:root[data-s="evening"]{--bg:#1B1F3B;--card:#262B52;--ink:#ECEBFA;--mute:#A9AED6;--accent:#F2C76B;--done:#6FD1A0;--line:#394071}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;transition:background .4s,color .4s}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.4rem;margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 16px;font-size:.95rem}
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab{flex:1;padding:12px;border:2px solid var(--line);background:transparent;color:var(--ink);border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer}
+.tab[aria-selected="true"]{border-color:var(--accent);background:var(--card)}
+.tab:focus-visible,.card:focus-visible,.reset:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--done);transition:width .3s}
+.stat{display:flex;justify-content:space-between;color:var(--mute);font-size:.9rem;margin-bottom:16px}
+.reset{background:none;border:0;color:var(--mute);text-decoration:underline;cursor:pointer;font-size:.9rem;padding:0}
+.card{display:block;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px;cursor:pointer;font:inherit}
+.card.done{border-color:var(--done)}
+.card h2{font-size:1rem;margin:0 0 10px;color:var(--mute);font-weight:600}
+.ar{font-family:"Amiri","Traditional Arabic","Geeza Pro",serif;font-size:1.55rem;line-height:2.1;direction:rtl;text-align:right;margin:0}
+.cnt{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-weight:600}
+.num{background:var(--accent);color:#1b1b1b;border-radius:20px;padding:2px 14px;min-width:64px;text-align:center}
+.done .num{background:var(--done);color:#0c1f17}
+.hint{color:var(--mute);font-size:.85rem}
+.win{margin:20px 0 0;padding:20px 16px;border-radius:14px;background:var(--done);color:#0c1f17;text-align:center;display:none;font-weight:700;font-size:1.2rem;line-height:1.4}
+.win small{display:block;font-weight:500;font-size:.95rem;margin-top:4px}
+.set{margin-top:24px;padding:16px;border:2px solid var(--line);border-radius:14px;background:var(--card)}
+.set h2{font-size:1rem;margin:0 0 10px}
+.set label{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.set input{font:inherit;padding:6px 8px;border-radius:8px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}
+.set button{width:100%;padding:12px;border:0;border-radius:12px;background:var(--accent);color:#1b1b1b;font:inherit;font-weight:700;cursor:pointer}
+#nmsg{margin:10px 0 0;color:var(--mute);font-size:.9rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+<h1>Adinan Dua App</h1>
+<p class="sub">Tuqaa kaardii tokko tokko irratti lakkaa’aa; yeroo xumuramu magariifa ta’a.</p>
+<div class="tabs" role="tablist">
+  <button class="tab" role="tab" id="t-morning" data-s="morning">Ganama</button>
+  <button class="tab" role="tab" id="t-evening" data-s="evening">Galgala</button>
+</div>
+<div class="bar"><i id="fill"></i></div>
+<div class="stat"><span id="stat"></span><button class="reset" id="reset">Haaromsi</button></div>
+<div id="list"></div>
+<div class="win" id="win" role="status"></div>
+<section class="set"><h2>Yaadachiisa (notification)</h2>
+<label>Ganama <input type="time" id="tm" value="05:00"></label>
+<label>Galgala <input type="time" id="te" value="17:00"></label>
+<button id="nbtn">Yaadachiisa kaa’i</button><p id="nmsg"></p></section>
+<p class="hint" id="when"></p>
+</main>
+<script>
+var COMMON=[
+{id:"kursi",n:1,t:"Aayatul Kursii",a:"اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ"},
+{id:"ikh",n:3,t:"Suuratul Ikhlaas",a:"قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ"},
+{id:"fal",n:3,t:"Suuratul Falaq",a:"قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ ۝ مِن شَرِّ مَا خَلَقَ ۝ وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ ۝ وَمِن شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ ۝ وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ"},
+{id:"nas",n:3,t:"Suuratun Naas",a:"قُلْ أَعُوذُ بِرَبِّ النَّاسِ ۝ مَلِكِ النَّاسِ ۝ إِلَٰهِ النَّاسِ ۝ مِن شَرِّ الْوَسْوَاسِ الْخَنَّاسِ ۝ الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ ۝ مِنَ الْجِنَّةِ وَالنَّاسِ"},
+"SPECIAL",
+{id:"sayy",n:1,t:"Sayyidul Istigfaar",a:"اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ"},
+{id:"rad",n:3,t:"Raadhiitu billaahi rabbaa",a:"رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ نَبِيًّا"},
+{id:"bis",n:3,t:"Bismillaahilladhii laa yadurru",a:"بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ"},
+{id:"has",n:7,t:"Hasbiyallaahu",a:"حَسْبِيَ اللَّهُ لَا إِلَهَ إِلَّا هُوَ عَلَيْهِ تَوَكَّلْتُ وَهُوَ رَبُّ الْعَرْشِ الْعَظِيمِ"},
+{id:"sub",n:100,t:"Tasbiiha",a:"سُبْحَانَ اللَّهِ وَبِحَمْدِهِ"}
+];
+var SPECIAL={
+morning:{id:"bika",n:1,t:"Duaa’ii ganamaa",a:"اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ"},
+evening:{id:"bika",n:1,t:"Duaa’ii galgalaa",a:"اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ"}
+};
+var WHEN={morning:"Yeroon ganamaa Fajrii booda hanga aduun ol baatu (ykn ganama keessa) dha.",evening:"Yeroon galgalaa Asrii booda hanga Maghribaatti (ykn galgala keessa) dha."};
+var S=new Date().getHours()<15?"morning":"evening";
+var state={};
+function key(){var d=new Date();return "adhkar:"+d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()+":"+S}
+function load(){state={};try{var v=localStorage.getItem(key());if(v)state=JSON.parse(v)||{}}catch(e){}}
+function save(){try{localStorage.setItem(key(),JSON.stringify(state))}catch(e){}}
+function items(){return COMMON.map(function(x){return x==="SPECIAL"?SPECIAL[S]:x})}
+function render(){
+  document.documentElement.setAttribute("data-s",S);
+  ["morning","evening"].forEach(function(s){document.getElementById("t-"+s).setAttribute("aria-selected",String(s===S))});
+  var list=document.getElementById("list");list.innerHTML="";
+  var total=0,doneN=0,its=items();
+  its.forEach(function(it){
+    var left=state[it.id]===undefined?it.n:state[it.id];
+    total++;if(left===0)doneN++;
+    var b=document.createElement("button");b.className="card"+(left===0?" done":"");
+    b.setAttribute("aria-label",it.t+", hafe: "+left);
+    b.innerHTML='<h2></h2><p class="ar"></p><div class="cnt"><span class="hint">'+(left===0?"Xumurameera":"Tuqi")+'</span><span class="num">'+(left===0?"✓":left+" / "+it.n)+'</span></div>';
+    b.querySelector("h2").textContent=it.t;b.querySelector(".ar").textContent=it.a;
+    b.onclick=function(){if(left>0){state[it.id]=left-1;save();render();if(navigator.vibrate)try{navigator.vibrate(15)}catch(e){}}};
+    list.appendChild(b);
+  });
+  document.getElementById("fill").style.width=(doneN/total*100)+"%";
+  document.getElementById("stat").textContent=doneN+" / "+total+" xumurameera";
+  var w=document.getElementById("win");
+  if(doneN===total){w.innerHTML="✓ Completed<small>"+(S==="morning"?"Duaa’ii ganamaa":"Duaa’ii galgalaa")+" xumurteetta. Maashaa’Allaah!</small>";w.style.display="block";if(!window._shown){window._shown=1;if(navigator.vibrate)try{navigator.vibrate([80,60,80])}catch(e){}}}else{w.style.display="none";window._shown=0}
+  document.getElementById("when").textContent=WHEN[S];
+}
+document.querySelectorAll(".tab").forEach(function(t){t.onclick=function(){S=t.dataset.s;load();render()}});
+document.getElementById("reset").onclick=function(){state={};save();render()};
+load();render();
+
+var LN=(window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.LocalNotifications)||null;
+function getT(k,d){try{return localStorage.getItem(k)||d}catch(e){return d}}
+function setupNotif(){
+  var m=document.getElementById("tm").value||"05:00",e=document.getElementById("te").value||"17:00";
+  try{localStorage.setItem("tm",m);localStorage.setItem("te",e)}catch(x){}
+  var msg=document.getElementById("nmsg");
+  if(!LN){msg.textContent="Yaadachiisni app dhugaa (APK) keessatti qofa hojjata.";return}
+  LN.requestPermissions().then(function(p){
+    if(p.display!=="granted"){msg.textContent="Hayyama notification kennaa (Settings keessatti).";return}
+    return LN.cancel({notifications:[{id:1},{id:2}]}).then(function(){
+      var a=m.split(":"),b=e.split(":");
+      return LN.schedule({notifications:[
+        {id:1,title:"Adinan Dua App",body:"Duaa’ii ganamaa jedhi",schedule:{on:{hour:+a[0],minute:+a[1]},allowWhileIdle:true}},
+        {id:2,title:"Adinan Dua App",body:"Duaa’ii galgalaa jedhi",schedule:{on:{hour:+b[0],minute:+b[1]},allowWhileIdle:true}}]});
+    }).then(function(){msg.textContent="Yaadachiisni kaa’ameera: "+m+" fi "+e+" (guyyaa guyyaan).";});
+  }).catch(function(err){msg.textContent="Dogoggora: "+err;});
+}
+document.getElementById("tm").value=getT("tm","05:00");
+document.getElementById("te").value=getT("te","17:00");
+document.getElementById("nbtn").onclick=setupNotif;
+var first=false;try{first=!localStorage.getItem("tm")}catch(e){}
+if(LN&&first)setupNotif();
+</script>
+</body>
+</html>
